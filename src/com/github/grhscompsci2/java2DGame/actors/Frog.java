@@ -8,8 +8,10 @@ public class Frog extends Actor {
   private final static String leftImg = "frog_left.png";
   private final static String rightImg = "frog_right.png";
 
+  private final double HOP_DELAY=0.125;
+  private double hopTime;
   public Frog() {
-    super(upImg, 112, 244, 100, Type.player);
+    super(upImg, Utility.gameWidth/2, Utility.gameHeight-8, 16, Type.player);
   }
 
   public void act(double deltaTime) {
@@ -32,10 +34,10 @@ public class Frog extends Actor {
       setImage(rightImg);
       dx = getSpeed();
     }
-
+    
     // check where our dx and dy values will send us
-    double futureX = getX() + dx * deltaTime;
-    double futureY = getY() + dy * deltaTime;
+    double futureX = getX() + dx;
+    double futureY = getY() + dy;
     // Get half the width or height of the sprite, whichever is largest
     double max = (Math.max(getWidth(), getHeight()) / 2.0);
     // If the new position will send us off the screen, set the dx or dy to zero
@@ -48,8 +50,14 @@ public class Frog extends Actor {
     // update the dx and dy officially
     setDX(dx);
     setDY(dy);
-
-    super.act(deltaTime);
+    
+    hopTime+=deltaTime;
+    if(hopTime>=HOP_DELAY){
+      hopTime=0;
+      setX(getX()+getDX());
+      setY(getY()+getDY());
+    }
+    //super.act(deltaTime);
   }
 
   @Override
@@ -61,6 +69,8 @@ public class Frog extends Actor {
   @Override
   public void hitActor(Actor actor) {
     // TODO Auto-generated method stub
-
+    if(actor.getType()==Type.enemy){
+      die();
+    }
   }
 }

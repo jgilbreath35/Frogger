@@ -1,5 +1,6 @@
 package com.github.grhscompsci2.java2DGame.actors;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.*;
 import java.awt.Rectangle;
@@ -90,6 +91,9 @@ public abstract class Actor {
     double offsetY = y - sprite.getHeight() / 2;
     g.drawImage(sprite, Utility.scale(offsetX), Utility.scale(offsetY), Utility.scale(sprite.getWidth()),
         Utility.scale(sprite.getHeight()), imageObserver);
+    g.setColor(Color.CYAN);
+    g.drawRect(Utility.scale(getBounds().x), Utility.scale(getBounds().y), Utility.scale(getBounds().width),
+        Utility.scale(getBounds().height));
   }
 
   /**
@@ -102,12 +106,26 @@ public abstract class Actor {
   }
 
   /**
+   * Sets the x attribute
+   */
+  public void setX(double x) {
+    this.x = x;
+  }
+
+  /**
    * Returns the y attribute
    * 
    * @return the y attribute
    */
   public double getY() {
     return y;
+  }
+
+  /**
+   * Sets the y attribute
+   */
+  public void setY(double y) {
+    this.y = y;
   }
 
   /**
@@ -216,7 +234,8 @@ public abstract class Actor {
    * @return a rectangle in the position and size of the sprite
    */
   public Rectangle getBounds() {
-    return new Rectangle((int) x, (int) y, sprite.getWidth(), sprite.getHeight());
+    return new Rectangle((int) (x - sprite.getWidth() / 2), (int) (y - sprite.getWidth() / 2), sprite.getWidth(),
+        sprite.getHeight());
   }
 
   /**

@@ -6,6 +6,7 @@ import javax.swing.SwingUtilities;
 
 import com.github.grhscompsci2.java2DGame.actors.Actor;
 import com.github.grhscompsci2.java2DGame.actors.Astronaut;
+import com.github.grhscompsci2.java2DGame.actors.Car;
 import com.github.grhscompsci2.java2DGame.actors.Frog;
 
 import java.awt.Graphics;
@@ -36,6 +37,7 @@ public class Board extends JPanel {
   private int frameCount = 0;
   private int fps = 0;
   public boolean running = false;
+  private double carTime;
   public static boolean paused = false;
 
   /**
@@ -63,6 +65,7 @@ public class Board extends JPanel {
   private void initBoard() {
     // Initialize all of your actors here: players, enemies, obstacles, etc.
     Utility.castAndCrew.add(new Frog());
+    carTime=0;
   }
 
   /**
@@ -117,8 +120,8 @@ public class Board extends JPanel {
       }
     }
 
-    //g2d.setColor(Color.BLACK);
-    //g2d.drawString("FPS: " + fps, 5, 10);
+    // g2d.setColor(Color.BLACK);
+    // g2d.drawString("FPS: " + fps, 5, 10);
 
     frameCount++;
   }
@@ -160,7 +163,7 @@ public class Board extends JPanel {
         // Update the frames we got.
         int thisSecond = (int) (lastUpdateTime / 1000000000);
         if (thisSecond > lastSecondTime) {
-          //System.out.println("NEW SECOND " + thisSecond + " " + frameCount);
+          // System.out.println("NEW SECOND " + thisSecond + " " + frameCount);
           fps = frameCount;
           frameCount = 0;
           lastSecondTime = thisSecond;
@@ -206,6 +209,35 @@ public class Board extends JPanel {
     for (Actor actor : Utility.castAndCrew) {
       actor.act(deltaTime);
     }
+    // Add random cars!
+    carTime+=deltaTime;
+    if (carTime >=2) {
+      generateRandomCar();
+      carTime=0;
+    }
+  }
+
+  private void generateRandomCar() {
+    int min = Utility.gameHeight - 8 - (6 * 16);
+    int lane = (int) (Math.random() * 5);
+
+    switch (lane) {
+      case 0:
+        Utility.addActor(new Car(8, min + lane * 16, 30, 1));
+        break;
+      case 1:
+        Utility.addActor(new Car(Utility.gameWidth-8, min + lane * 16, 30, -1));
+        break;
+      case 2:
+        Utility.addActor(new Car(8, min + lane * 16, 30, 1));
+        break;
+      case 3:
+        Utility.addActor(new Car(Utility.gameWidth-8, min + lane * 16, 30, -1));
+        break;
+      case 4:
+        Utility.addActor(new Car(8, min + lane * 16, 30, 1));
+        break;
+    }
   }
 
   private void drawGame() {
@@ -225,7 +257,7 @@ public class Board extends JPanel {
    */
   public void checkCollisions() {
     // check player against all other objects
-    Rectangle boundry = this.getBounds();
+    Rectangle boundry = new Rectangle(Utility.gameWidth, Utility.gameHeight);
     for (Actor actor : Utility.castAndCrew) {
       if (!boundry.contains(actor.getBounds())) {
         actor.hitEdge();
