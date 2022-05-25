@@ -20,22 +20,55 @@ import java.awt.*;
  */
 public class Board extends JPanel {
   private final String BACKGROUND_FILE_NAME = "background.png";
-  // This value would probably be stored elsewhere.
+  /**
+   * The frequency of the game updates
+   */
   final double GAME_HERTZ = 30.0;
-  // Calculate how many ns each frame should take for our target game hertz.
+  /**
+   * Calculate how many ns each frame should take for our game hertz.
+   */
   final double TIME_BETWEEN_UPDATES = 1000000000 / GAME_HERTZ;
-  // At the very most we will update the game this many times before a new render.
-  // If you're worried about visual hitches more than perfect timing, set this to
-  // 1.
+  /**
+   * At the very most we will update the game this many times before a new render.
+   * If you're worried about visual hitches more than perfect timing, set this to
+   * 1.
+   */
   final int MAX_UPDATES_BEFORE_RENDER = 5;
-  // If we are able to get as high as this FPS, don't render again.
+  /**
+   * The target FPS. If we are able to get as high as this FPS, don't render
+   * again.
+   */
   final double TARGET_FPS = 60;
+  /**
+   * Calculate how many nS each frame should take for the target game hertz.
+   */
   final double TARGET_TIME_BETWEEN_RENDERS = 1000000000 / TARGET_FPS;
+  /**
+   * Holds the background image. This image is used to set the resolution of the
+   * screen.
+   */
   private BufferedImage background;
+  /**
+   * How many frames have been updated this second
+   */
   private int frameCount = 0;
+  /**
+   * The current frames per second
+   */
   private int fps = 0;
+  /**
+   * Holds if the game is running
+   */
   public boolean running = false;
+  /**
+   * Holds if the game is paused
+   */
   public static boolean paused = false;
+  /**
+   * The debug mode status. If this is set to true, bounding boxes will be
+   * rendered.
+   */
+  public static final boolean debugMode = true;
 
   /**
    * Initialize the board
@@ -106,23 +139,32 @@ public class Board extends JPanel {
 
     // Always draw this first so it will be on the bottom
     g2d.drawImage(background, 0, 0, Utility.scale(background.getWidth()), Utility.scale(background.getHeight()), this);
-
+    if (debugMode) {
+      g2d.setColor(Color.MAGENTA);
+      g2d.drawRect(0, 0, background.getWidth(), background.getHeight());
+    }
     ArrayList<Actor> paintActors = new ArrayList<>();
     paintActors.addAll(Utility.castAndCrew);
     // call other drawing stuff here
     for (Actor actor : paintActors) {
       if (!actor.isDead()) {
         actor.draw(g2d, this);
+        if (debugMode) {
+          actor.drawDebug(g2d);
+        }
       }
     }
 
-    //g2d.setColor(Color.BLACK);
-    //g2d.drawString("FPS: " + fps, 5, 10);
+    // g2d.setColor(Color.BLACK);
+    // g2d.drawString("FPS: " + fps, 5, 10);
 
     frameCount++;
   }
 
-  // Only run this in another Thread!
+  /**
+   * This method will call our updateGame method every TIME_BETWEEN_UPDATES. Do
+   * not run this in the same thread as the GUI!!
+   */
   public void gameLoop() {
     // We will need the last update time.
     double lastUpdateTime = System.nanoTime();
@@ -159,7 +201,7 @@ public class Board extends JPanel {
         // Update the frames we got.
         int thisSecond = (int) (lastUpdateTime / 1000000000);
         if (thisSecond > lastSecondTime) {
-          //System.out.println("NEW SECOND " + thisSecond + " " + frameCount);
+          // System.out.println("NEW SECOND " + thisSecond + " " + frameCount);
           fps = frameCount;
           frameCount = 0;
           lastSecondTime = thisSecond;
@@ -207,8 +249,10 @@ public class Board extends JPanel {
     }
   }
 
+  /**
+   * This method will start the thread to draw our game.
+   */
   private void drawGame() {
-
     SwingUtilities.invokeLater(new Runnable() {
       @Override
       public void run() {
@@ -223,11 +267,25 @@ public class Board extends JPanel {
    * small games.
    */
   public void checkCollisions() {
-    // check player against all other objects
-    Rectangle boundry = new Rectangle(Utility.gameWidth,Utility.gameHeight);
+
+    // get the current bounds of the play area
+    Rectangle boundry = new Rectangle(Utility.gameWidth, Utility.gameHeight);
+
+    // Step through all of the actors
     for (Actor actor : Utility.castAndCrew) {
-      if (!boundry.contains(actor.getBounds())) {
-        actor.hitEdge();
+      // don't check the dead
+      if (!actor.isDead()) {
+        // if the actor is outside of the bounds
+        if (!boundry.contains(actor.getBounds())) {
+          actor.hitEdge();
+        }
+        // step through all of the current actors, again
+        for (Actor other : Utility.castAndCrew) {
+          // if the other actor is not dead, and we are not checking against ourself
+          if (!other.isDead() && actor != other) {
+            actor.hitActor(other);
+          }
+        }
       }
     }
   }

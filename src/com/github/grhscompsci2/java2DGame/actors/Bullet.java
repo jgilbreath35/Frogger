@@ -27,7 +27,7 @@ public class Bullet extends Actor {
   @Override
   public void hitActor(Actor actor) {
     //if we did not hit another bullet
-    if (actor.getType() != getType()) {
+    if (actor.getType() != getType()&&actor.getType()!=Type.player) {
       die();
     }
   }
