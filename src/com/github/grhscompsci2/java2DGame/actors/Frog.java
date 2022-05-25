@@ -7,17 +7,21 @@ public class Frog extends Actor {
   private final static String downImg = "frog_down.png";
   private final static String leftImg = "frog_left.png";
   private final static String rightImg = "frog_right.png";
+  private final static String deadImg="frog_dead.png";
 
+  private boolean squashed;
   private final double HOP_DELAY=0.125;
   private double hopTime;
   public Frog() {
     super(upImg, Utility.gameWidth/2, Utility.gameHeight-8, 16, Type.player);
+    squashed=false;
   }
 
   public void act(double deltaTime) {
     // create new changes in x and y
     double dx = 0;
     double dy = 0;
+    if(!squashed){
     if (Utility.UP_ARROW) {
       setImage(upImg);
       dy = -1 * getSpeed();
@@ -47,6 +51,10 @@ public class Frog extends Actor {
     if (futureY < max || futureY > Utility.gameHeight - max) {
       dy = 0;
     }
+  }
+  else {
+    setImage(deadImg);
+  }
     // update the dx and dy officially
     setDX(dx);
     setDY(dy);
@@ -56,6 +64,9 @@ public class Frog extends Actor {
       hopTime=0;
       setX(getX()+getDX());
       setY(getY()+getDY());
+      if(squashed){
+        die();
+      }
     }
     //super.act(deltaTime);
   }
@@ -70,7 +81,7 @@ public class Frog extends Actor {
   public void hitActor(Actor actor) {
     // TODO Auto-generated method stub
     if(actor.getType()==Type.enemy){
-      die();
+      squashed=true;
     }
   }
 }
